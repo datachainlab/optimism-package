@@ -36,12 +36,13 @@ def launch(
         context=_el_context.new_el_context(
             client_name=params.type,
             enode=None,
-            ip_addr=service.ip_address,
+            dns_name=service.hostname,
             rpc_port_num=rpc_port.number,
             ws_port_num=WS_PORT_NUM,
             engine_rpc_port_num=rpc_port.number,
             rpc_http_url=_net.service_url(params.service_name, rpc_port),
             service_name=params.service_name,
+            ip_addr=service.ip_address,
         ),
     )
 

@@ -99,7 +99,7 @@ def launch(
         context=_ethereum_package_el_context.new_el_context(
             client_name="op-geth",
             enode=enode,
-            ip_addr=service.ip_address,
+            dns_name=service.hostname,
             rpc_port_num=rpc_port.number,
             ws_port_num=ws_port.number,
             engine_rpc_port_num=engine_rpc_port.number,
@@ -107,6 +107,7 @@ def launch(
             enr=enr,
             service_name=params.service_name,
             el_metrics_info=[metrics_info],
+            ip_addr=service.ip_address,
         ),
     )
 
