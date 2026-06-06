@@ -148,7 +148,7 @@ def _build_global_deploy_overrides(optimism_args):
 
 
 def _build_chain_intent(
-    chain, absolute_prestate, vm_type, altda_args, hardfork_schedule
+    chain, absolute_prestate, vm_type, altda_args, hardfork_schedule, deploy_overrides
 ):
     """Build intent configuration for a single chain.
 
@@ -158,6 +158,7 @@ def _build_chain_intent(
         vm_type: VM type for dispute games
         altda_args: Alternative DA configuration
         hardfork_schedule: List of hardfork activation schedules
+        deploy_overrides: Additional deploy overrides (e.g., l2GenesisBlockGasLimit)
 
     Returns:
         Dictionary containing chain intent configuration
@@ -219,6 +220,11 @@ def _build_chain_intent(
     for fork_key, activation_timestamp in hardfork_schedule:
         intent_chain["deployOverrides"][fork_key] = "0x%x" % activation_timestamp
 
+    # Apply additional deploy overrides (e.g., l2GenesisBlockGasLimit)
+    for key, value in deploy_overrides.items():
+        if key not in ["faultGameAbsolutePrestate", "vmType"]:  # Skip already handled overrides
+            intent_chain["deployOverrides"][key] = value
+
     return intent_chain
 
 
@@ -258,7 +264,7 @@ def _build_deployment_intent(
     for _, chain in enumerate(optimism_args.chains):
         hardfork_schedule = _build_hardfork_schedule(chain)
         chain_intent = _build_chain_intent(
-            chain, absolute_prestate, vm_type, altda_args, hardfork_schedule
+            chain, absolute_prestate, vm_type, altda_args, hardfork_schedule, overrides
         )
         intent["chains"].append(chain_intent)
 

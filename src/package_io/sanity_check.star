@@ -83,6 +83,7 @@ OP_CONTRACT_DEPLOYER_PARAMS = [
 OP_CONTRACT_DEPLOYER_OVERRIDES = [
     "faultGameAbsolutePrestate",
     "vmType",
+    "l2GenesisBlockGasLimit",
 ]
 
 EXTERNAL_L1_NETWORK_PARAMS = [
