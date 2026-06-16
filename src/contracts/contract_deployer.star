@@ -89,6 +89,7 @@ def _build_hardfork_schedule(chain):
         ("l2GenesisHoloceneTimeOffset", np.holocene_time_offset),
         ("l2GenesisIsthmusTimeOffset", np.isthmus_time_offset),
         ("l2GenesisJovianTimeOffset", np.jovian_time_offset),
+        ("l2GenesisKarstTimeOffset", np.karst_time_offset),
         ("l2GenesisInteropTimeOffset", np.interop_time_offset),
     )
 
