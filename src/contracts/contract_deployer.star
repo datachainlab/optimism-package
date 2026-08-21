@@ -393,6 +393,10 @@ def deploy_contracts(
     op_deployer_output = plan.run_sh(
         name="op-deployer-apply",
         description="Apply L2 contract deployments",
+        # run_sh defaults to a 180s timeout, which the op-contracts v8 (Upgrade 20)
+        # deployment blows past: it now also deploys the Super Fault / Super
+        # Permissioned game implementations on top of the usual chain contracts.
+        wait="1800s",
         image=optimism_args.op_contract_deployer_params.image,
         env_vars={
             "PRIVATE_KEY": str(priv_key),

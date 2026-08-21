@@ -7,6 +7,12 @@ _observability = import_module("../../observability/observability.star")
 _net = import_module("/src/util/net.star")
 _util = import_module("../../util.star")
 
+# Game types whose root claim is a Super Root instead of a chain Output Root
+# (GameTypes.isSuperGame in packages/contracts-bedrock/src/dispute/lib/Types.sol):
+#   4 SUPER_CANNON, 5 SUPER_PERMISSIONED, 7 SUPER_ASTERISC_KONA,
+#   9 SUPER_CANNON_KONA, 10 ZK_DISPUTE_GAME
+_SUPER_ROOT_GAME_TYPES = [4, 5, 7, 9, 10]
+
 
 def launch(
     plan,
@@ -54,25 +60,35 @@ def get_service_config(
 ):
     ports = _net.ports_to_port_specs(params.ports)
 
+    proposal_source_urls = [
+        _net.service_url(
+            s.conductor_params.service_name,
+            s.conductor_params.ports[_net.RPC_PORT_NAME],
+        )
+        if s.conductor_params
+        else _net.service_url(s.cl.service_name, s.cl.ports[_net.RPC_PORT_NAME])
+        for s in sequencers_params
+    ]
+
+    # Super Root game types take their proposals from a super root RPC source rather
+    # than from the rollup node's output roots. op-proposer requires EXACTLY ONE of
+    # --rollup-rpc / --superroot-rpcs ("invalid CLI flags: must specify exactly one of
+    # rollup rpc or super root rpc"), so pick the flag from the game type.
+    # For a single chain the super root source is op-node itself (it serves
+    # `superroot_atTimestamp`); op-supernode is only needed for a multi-chain
+    # interop dependency set.
+    if params.game_type in _SUPER_ROOT_GAME_TYPES:
+        proposal_source_flag = "--superroot-rpcs={}".format(
+            ",".join(proposal_source_urls)
+        )
+    else:
+        proposal_source_flag = "--rollup-rpc={}".format(",".join(proposal_source_urls))
+
     cmd = [
         "op-proposer",
         "--poll-interval=12s",
         "--rpc.port={}".format(params.ports[_net.HTTP_PORT_NAME].number),
-        "--rollup-rpc={}".format(
-            ",".join(
-                [
-                    _net.service_url(
-                        s.conductor_params.service_name,
-                        s.conductor_params.ports[_net.RPC_PORT_NAME],
-                    )
-                    if s.conductor_params
-                    else _net.service_url(
-                        s.cl.service_name, s.cl.ports[_net.RPC_PORT_NAME]
-                    )
-                    for s in sequencers_params
-                ]
-            ),
-        ),
+        proposal_source_flag,
         "--game-factory-address={}".format(game_factory_address),
         "--private-key={}".format(gs_proposer_private_key),
         "--l1-eth-rpc={}".format(l1_config_env_vars["L1_RPC_URL"]),
